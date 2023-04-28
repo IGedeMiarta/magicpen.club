@@ -145,6 +145,8 @@ abstract class DataTableAbstract implements DataTable
      */
     protected array $searchPanes = [];
 
+    protected mixed $transformer;
+
     /**
      * Can the DataTable engine be created with these parameters.
      *
@@ -430,8 +432,6 @@ abstract class DataTableAbstract implements DataTable
     {
         if (is_array($key)) {
             $this->appends = $key;
-        } elseif (is_callable($value)) {
-            $this->appends[$key] = value($value);
         } else {
             $this->appends[$key] = value($value);
         }
@@ -869,7 +869,7 @@ abstract class DataTableAbstract implements DataTable
         $output = $this->attachAppends([
             'draw' => $this->request->draw(),
             'recordsTotal' => $this->totalRecords,
-            'recordsFiltered' => $this->filteredRecords,
+            'recordsFiltered' => $this->filteredRecords ?? 0,
             'data' => $data,
         ]);
 

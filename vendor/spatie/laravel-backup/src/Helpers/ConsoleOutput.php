@@ -4,11 +4,14 @@ namespace Spatie\Backup\Helpers;
 
 use Illuminate\Console\Command;
 
+/**
+ * @mixin \Illuminate\Console\Concerns\InteractsWithIO
+ */
 class ConsoleOutput
 {
     protected ?Command $command = null;
 
-    public function setCommand(Command $command)
+    public function setCommand(Command $command): void
     {
         $this->command = $command;
     }
