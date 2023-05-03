@@ -38,6 +38,7 @@ class PaymentController extends Controller
      */
     public function pay(Request $request, SubscriptionPlan $id)
     {
+        // dd($request->all());
         if ($id->free) {
 
             $order_id = $this->registerFreeSubscription($id);

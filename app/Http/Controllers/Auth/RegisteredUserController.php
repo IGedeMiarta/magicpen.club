@@ -3,6 +3,8 @@
 namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
+use App\Models\AfilieteComunity;
+use App\Models\ComunityLink;
 use App\Models\User;
 use Illuminate\Auth\Events\Registered;
 use Illuminate\Http\Request;
@@ -109,7 +111,7 @@ class RegisteredUserController extends Controller
         
         event(new Registered($user));
 
-        $referral_code = ($request->hasCookie('referral')) ? $request->cookie('referral') : ''; 
+        $referral_code = $request->ref ? $request->ref : ''; 
         $referrer = ($referral_code != '') ? User::where('referral_id', $referral_code)->firstOrFail() : '';
         $referrer_id = ($referrer != '') ? $referrer->id : '';
 
@@ -127,6 +129,16 @@ class RegisteredUserController extends Controller
         $user->job_role = 'Happy Person';
         $user->referral_id = strtoupper(Str::random(15));
         $user->referred_by = $referrer_id;
+        $user->is_am = 1;
+        if ($request->com != null) {
+            $comunity = AfilieteComunity::find($request->com);
+            $user->afl_id = $comunity->afl_id;
+            ComunityLink::create([
+                'user_id' => $comunity->user_id,
+                'link_id' => $comunity->id,
+                'user_regist' => $user->id
+            ]);
+        }
         $user->save();      
      
     }

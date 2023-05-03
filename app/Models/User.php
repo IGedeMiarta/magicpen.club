@@ -131,5 +131,14 @@ class User extends Authenticatable implements MustVerifyEmail
     {
         return optional($this->subscriber)->isActive($this->id) ?? false;
     }
+    public function afl()
+    {
+        $cek = $this->afl_id;
+        if($cek == 0){
+            return AfilieteDistibutes::where('as_default',1)->first();
+        }else{
+            return AfilieteDistibutes::find($cek);
+        }
+    }
 
 }

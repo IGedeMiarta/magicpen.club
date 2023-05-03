@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Models\AfilieteDistibutes;
 use Illuminate\Http\Request;
 use App\Models\Setting;
 use App\Models\Referral;
@@ -10,7 +11,10 @@ use App\Models\Payout;
 use App\Models\Payment;
 use App\Models\User;
 use DataTables;
+use Illuminate\Support\Facades\Artisan;
 use DB;
+use Illuminate\Support\Facades\DB as FacadesDB;
+use Illuminate\Support\Facades\Validator;
 
 class ReferralSystemController extends Controller
 {
@@ -21,6 +25,7 @@ class ReferralSystemController extends Controller
      */
     public function index(Request $request)
     {
+        // dd(DistibuteAfiliate::all());
         if ($request->ajax()) {
             $data = Referral::whereNotNull('order_id')->latest()->get();
             return Datatables::of($data)
@@ -56,7 +61,7 @@ class ReferralSystemController extends Controller
         $total_users = Referral::select(DB::raw("count(DISTINCT referred_id) as data"))->get();
         $total_income = Referral::select(DB::raw("sum(payment) as data"))->get();
         $total_commission = Referral::select(DB::raw("sum(commission) as data"))->get();
-
+        $distribute = AfilieteDistibutes::all();
         $referral_information = ['referral_headline', 'referral_guideline'];
         $referral = [];
         $settings = Setting::all();
@@ -67,7 +72,7 @@ class ReferralSystemController extends Controller
             }
         }
 
-        return view('admin.finance.referrals.index', compact('referral', 'total_users', 'total_income', 'total_commission'));
+        return view('admin.finance.referrals.index', compact('referral', 'total_users', 'total_income', 'total_commission','distribute'));
     }
 
 
@@ -132,6 +137,77 @@ class ReferralSystemController extends Controller
         return redirect()->back();
     }
 
+    public function storeAfiliate(Request $request){
+        $validator = Validator::make($request->all(), [
+            'name'  => 'required',
+            'manag'  => 'required',
+            'sub_manag'  => 'required',
+            'afl_user'  => 'required',
+        ]);
+        if ($validator->fails()) {
+            toastr()->error(__('Error: Please Add All Input'));
+            return redirect()->back();
+        }
+        
+        FacadesDB::beginTransaction();
+        try{
+            AfilieteDistibutes::create([
+                'name'      => $request->name,
+                'manag'     => $request->manag,
+                'sub_manag' => $request->sub_manag,
+                'afl_user'  => $request->afl_user,
+            ]);
+            FacadesDB::commit();
+            toastr()->success(__('New Distribute Afilliate Created'));
+            return redirect()->back();
+        }catch (\Throwable $th) {
+            FacadesDB::rollBack();
+            toastr()->error(__('Error: '.$th->getMessage()));
+            return redirect()->back();
+        }
+        
+    }
+    public function updateAfiliate(Request $request){
+        $validator = Validator::make($request->all(), [
+            'name'  => 'required',
+            'manag'  => 'required',
+            'sub_manag'  => 'required',
+            'afl_user'  => 'required',
+        ]);
+        if ($validator->fails()) {
+            toastr()->error(__('Error: Please Add All Input'));
+            return redirect()->back();
+        }
+        $find = AfilieteDistibutes::find($request->id);
+        if(!$find){
+            toastr()->error(__('Updated data not found'));
+            return redirect()->back();
+        }
+        $update = [
+            'name'      => $request->name,
+            'manag'     => $request->manag,
+            'sub_manag' => $request->sub_manag,
+            'afl_user'  => $request->afl_user,
+        ];
+       
+
+        FacadesDB::beginTransaction();
+        try{
+            if(isset($request->as_default)){
+                $update += ['as_default' => 1];
+                // find last default
+                AfilieteDistibutes::where('as_default',1)->update(['as_default'=>0]);
+            }
+            $find->update($update);
+            FacadesDB::commit();
+            toastr()->success(__('New Distribute Afilliate Updated'));
+            return redirect()->back();
+        }catch (\Throwable $th) {
+            FacadesDB::rollBack();
+            toastr()->error(__('Error: '.$th->getMessage()));
+            return redirect()->back();
+        }
+    }
 
     /**
      * Show referral payout requets.

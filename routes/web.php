@@ -73,13 +73,17 @@ use Illuminate\Support\Facades\Artisan;
 | contains the "web" middleware group. Now reate something great!
 |
 */
+route::get('/artisan-clear',function(){
+    Artisan::call('view:clear');
+    Artisan::call('cache:clear');
+    Artisan::call('config:clear');
+    Artisan::call('route:cache');
+    return 'test';
+});
 
 // AUTH ROUTES
 Route::middleware(['middleware' => 'PreventBackHistory'])->group(function () {
     require __DIR__.'/auth.php';
-});
-Route::get('/test',function(){
-    return 'test';
 });
 
 // FRONTEND ROUTES
@@ -234,13 +238,16 @@ Route::group(['prefix' => 'admin', 'middleware' => ['verified', '2fa.verify', 'r
 
     // ADMIN FINANCE - REFERRAL ROUTES
     Route::controller(ReferralSystemController::class)->group(function() {
-        Route::get('/referral/settings', 'index')->name('admin.referral.settings');
+        Route::get('/referral/settings-new', 'index')->name('admin.referral.settings');
         Route::post('/referral/settings', 'store')->name('admin.referral.settings.store');
+        route::post('/referral/create-new','storeAfiliate')->name('admin.referral.settings.new');
+        route::post('/referral/update-new','updateAfiliate')->name('admin.referral.settings.update');
         Route::get('/referral/{order_id}/show', 'paymentShow')->name('admin.referral.show');
         Route::get('/referral/payouts', 'payouts')->name('admin.referral.payouts');
         Route::get('/referral/payouts/{id}/show', 'payoutsShow')->name('admin.referral.payouts.show');
         Route::put('/referral/payouts/{id}/store', 'payoutsUpdate')->name('admin.referral.payouts.update');
         Route::get('/referral/payouts/{id}/cancel', 'payoutsCancel')->name('admin.referral.payouts.cancel');
+        
         Route::delete('/referral/payouts/{id}/decline', 'payoutsDecline')->name('admin.referral.payouts.decline');
         Route::get('/referral/top', 'topReferrers')->name('admin.referral.top');
     });
@@ -385,7 +392,7 @@ Route::group(['prefix' => 'admin', 'middleware' => ['verified', '2fa.verify', 'r
     // ADMIN GENERAL SETTINGS - CLEAR CACHE
     Route::controller(ClearCacheController::class)->group(function() {
         Route::get('/settings/clear', 'index')->name('admin.settings.clear');
-        Route::post('/settings/clear/clear', 'cache')->name('admin.settings.clear.cache');
+        Route::post('/settings/clear/clear', 'clearCache')->name('admin.settings.clear.cache');
         Route::post('/settings/clear/symlink', 'symlink')->name('admin.settings.clear.symlink');
     });
 
@@ -598,6 +605,7 @@ Route::group(['prefix' => 'user', 'middleware' => ['verified', '2fa.verify', 'ro
     Route::controller(ReferralController::class)->group(function() {
         Route::get('/referral', 'index')->name('user.referral');
         Route::post('/referral/settings', 'store')->name('user.referral.store');
+        Route::post('/referral/comunity', 'comunity')->name('user.referral.comunity');
         Route::get('/referral/gateway', 'gateway')->name('user.referral.gateway');
         Route::post('/referral/gateway', 'gatewayStore')->name('user.referral.gateway.store');
         Route::get('/referral/payouts', 'payouts')->name('user.referral.payout');

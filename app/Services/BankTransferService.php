@@ -24,9 +24,9 @@ class BankTransferService
             session()->forget('bank_order_id');
         }
 
-        $listener = new Listener();
-        $process = $listener->upload();
-        if (!$process['status']) return false;
+        // $listener = new Listener();
+        // $process = $listener->upload();
+        // if (!$process['status']) return false;
 
         $duration = ($id->payment_frequency == 'monthly') ? 30 : 365;
 

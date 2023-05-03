@@ -28,7 +28,7 @@ class ClearCacheController extends Controller
      * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\Response
      */
-    public function cache(Request $request)
+    public function clearCache(Request $request)
     {		
 		try {
             Artisan::call('config:clear');

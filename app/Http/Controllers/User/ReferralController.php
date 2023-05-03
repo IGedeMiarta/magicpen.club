@@ -8,6 +8,8 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 use App\Events\PayoutRequested;
 use App\Mail\ReferralEmail;
+use App\Models\AfilieteComunity;
+use App\Models\AfilieteDistibutes;
 use App\Models\Setting;
 use App\Models\Referral;
 use App\Models\Payout;
@@ -15,6 +17,7 @@ use App\Models\User;
 use DataTables;
 use DB;
 use Exception;
+use Illuminate\Support\Facades\DB as FacadesDB;
 
 class ReferralController extends Controller
 {
@@ -28,7 +31,8 @@ class ReferralController extends Controller
         $referral_information = ['referral_headline', 'referral_guideline'];
         $referral = [];
         $settings = Setting::all();
-
+        $dis = AfilieteDistibutes::all();
+        $comunity = AfilieteComunity::where('user_id',auth()->user()->id)->get();
         foreach ($settings as $row) {
             if (in_array($row['name'], $referral_information)) {
                 $referral[$row['name']] = $row['value'];
@@ -37,7 +41,34 @@ class ReferralController extends Controller
 
         $total_commission = Referral::select(DB::raw("sum(commission) as data"))->where('referrer_id', auth()->user()->id)->get();
 
-        return view('user.referrals.index', compact('referral', 'total_commission'));
+        return view('user.referrals.index', compact('referral', 'total_commission','comunity','dis'));
+    }
+    public function comunity(Request $req){
+        FacadesDB::beginTransaction();
+        try {
+            AfilieteComunity::create([
+                'user_id'   => auth()->user()->id,
+                'name'      => $req->name1,
+                'afl_id'    => $req->level1
+            ]);
+            AfilieteComunity::create([
+                'user_id'   => auth()->user()->id,
+                'name'      => $req->name2,
+                'afl_id'    => $req->level2
+            ]);
+            AfilieteComunity::create([
+                'user_id'   => auth()->user()->id,
+                'name'      => $req->name3,
+                'afl_id'    => $req->level3
+            ]);
+            FacadesDB::commit();
+            toastr()->success(__('Comunity Link Created'));
+            return redirect()->back();
+        } catch (\Throwable $th) {
+            FacadesDB::rollBack();
+            toastr()->error(__('Error: '.$th->getMessage()));
+            return redirect()->back();
+        }
     }
 
     /**

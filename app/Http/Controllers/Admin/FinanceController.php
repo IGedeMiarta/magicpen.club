@@ -10,6 +10,7 @@ use App\Services\Statistics\CostsService;
 use App\Events\PaymentReferrerBonus;
 use App\Models\Subscriber;
 use App\Models\Payment;
+use App\Models\Referral;
 use App\Models\User;
 use App\Models\SubscriptionPlan;
 use DataTables;
@@ -300,26 +301,27 @@ class FinanceController extends Controller
     {
         request()->validate([
             'payment-status' => 'required',
-        ]);
-
+        ]); 
+        
         $id->status = request('payment-status');
         $id->save();
 
 
         if ($id->status == 'completed') {
 
-            if (config('payment.referral.enabled') == 'on') {
-            if (config('payment.referral.payment.policy') == 'first') {
-                if (Payment::where('user_id', auth()->user()->id)->where('status', 'Success')->exists()) {
-                    /** User already has at least 1 payment and referrer already received credit for it */
-                } else {
-                    event(new PaymentReferrerBonus(auth()->user(), $id->order_id, $id->price, 'BankTransfer'));
-                }
-            } else {
-                event(new PaymentReferrerBonus(auth()->user(), $id->order_id, $id->price, 'BankTransfer'));
-            }
-        }
-            
+            // if (config('payment.referral.enabled') == 'on') {
+            //     if (config('payment.referral.payment.policy') == 'first') {
+            //         if (Payment::where('user_id', auth()->user()->id)->where('status', 'Success')->exists()) {
+            //             /** User already has at least 1 payment and referrer already received credit for it */
+            //         } else {
+            //             event(new PaymentReferrerBonus(auth()->user(), $id->order_id, $id->price, 'BankTransfer'));
+            //         }
+            //     } else {
+            //         event(new PaymentReferrerBonus(auth()->user(), $id->order_id, $id->price, 'BankTransfer'));
+            //     }
+            // }
+            Referral::distibuteBonus($id);
+
             $user = User::where('id', $id->user_id)->first();
             $group = ($user->hasRole('admin'))? 'admin' : 'subscriber';
 
